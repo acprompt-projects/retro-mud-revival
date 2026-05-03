@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro MUD Revival - 终端</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #33ff33;
+            font-family: 'Courier New', 'Consolas', monospace;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #header {
+            padding: 8px 16px;
+            background: #111;
+            border-bottom: 2px solid #33ff33;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        #header .title {
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        #header .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #stats {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 13px;
+            color: #88ff88;
+        }
+
+        #stats .stat-label {
+            color: #559955;
+            margin-right: 4px;
+        }
+
+        #hp-bar-wrap {
+            width: 110px;
+            height: 12px;
+            border: 1px solid #33ff33;
+            background: #001100;
+            position: relative;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        #hp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #33ff33, #88ff88);
+            width: 100%;
+            transition: width 0.4s ease;
+        }
+
+        #hp-bar-fill.low {
+            background: linear-gradient(90deg, #ffaa33, #ffdd55);
+        }
+
+        #hp-bar-fill.critical {
+            background: linear-gradient(90deg, #ff3333, #ff6666);
+            animation: hp-blink 0.8s infinite;
+        }
+
+        @keyframes hp-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #stats .room-name {
+            color: #ffff88;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        #status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff3333;
+            box-shadow: 0 0 8px #ff3333;
+            transition: all 0.3s;
+        }
+        
+        #status-dot.online {
+            background: #33ff33;
+            box-shadow: 0 0 8px #33ff33;
+        }
+        
+        #terminal-container {
+            flex: 1;
+            padding: 8px;
+            position: relative;
+        }
+        
+        #terminal {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* CRT scanline effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+        }
+        
+        /* Subtle screen glow */
+        .glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 99;
+            background: radial-gradient(ellipse at center, rgba(51, 255, 51, 0.03) 0%, transparent 70%);
+        }
+        
+        .xterm-viewport {
+            background-color: #0a0a0a !important;
+        }
+        
+        .xterm-screen {
+            background-color: #0a0a0a !important;
+        }
+        
+        #quest-bar {
+            padding: 5px 16px;
+            background: #0d1a0d;
+            border-bottom: 1px solid #1a331a;
+            font-size: 12px;
+            color: #88cc88;
+            max-height: 52px;
+            overflow-y: auto;
+            display: none;
+        }
+        #quest-bar.visible { display: block; }
+        #quest-bar .q-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 18px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+        }
+        #quest-bar .q-id {
+            color: #448844;
+            font-size: 11px;
+            background: #0a1a0a;
+            padding: 1px 5px;
+            border-radius: 3px;
+            border: 1px solid #1a331a;
+        }
+        #quest-bar .q-name {
+            color: #aaffaa;
+            font-weight: bold;
+        }
+        #quest-bar .q-progress {
+            color: #ffcc66;
+            font-size: 11px;
+        }
+        #footer {
+            padding: 6px 16px;
+            background: #111;
+            border-top: 1px solid #222;
+            font-size: 12px;
+            color: #555;
+            text-align: center;
+        }
+
+        #minimap {
+            position: fixed;
+            bottom: 36px;
+            right: 12px;
+            background: rgba(8, 16, 8, 0.92);
+            border: 1px solid #1a4a1a;
+            border-radius: 4px;
+            padding: 8px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.25;
+            color: #66cc66;
+            z-index: 200;
+            white-space: pre;
+            user-select: none;
+            min-width: 130px;
+            max-width: 260px;
+        }
+        #minimap .mm-title {
+            color: #88ff88;
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-align: center;
+            border-bottom: 1px dashed #1a4a1a;
+            padding-bottom: 2px;
+        }
+        #minimap .mm-current {
+            color: #ffff66;
+            background: #2a3a1a;
+            padding: 0 1px;
+        }
+        #minimap .mm-visited {
+            color: #66cc66;
+        }
+        #minimap .mm-toggle {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            color: #559955;
+            cursor: pointer;
+            font-size: 10px;
+        }
+        #minimap.collapsed { padding: 4px 6px; min-width: 0; }
+        #minimap.collapsed .mm-body { display: none; }
+        #minimap.collapsed .mm-title { margin-bottom: 0; border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="glow"></div>
+    
+    <div id="header">
+        <div class="title">🏰 RETRO MUD REVIVAL v0.1</div>
+        <div id="stats">
+            <span><span class="stat-label">玩家</span><span id="stat-name">—</span></span>
+            <span><span class="stat-label">Lv</span><span id="stat-level">—</span></span>
+            <span>
+                <span class="stat-label">HP</span>
+                <span id="hp-bar-wrap"><div id="hp-bar-fill"></div></span>
+                <span id="stat-hp">—</span>
+            </span>
+            <span><span class="stat-label">金币</span><span id="stat-gold">—</span></span>
+            <span><span class="stat-label">位置</span><span id="stat-room" class="room-name">—</span></span>
+        </div>
+        <div class="status">
+            <span id="status-text">离线</span>
+            <div id="status-dot"></div>
+        </div>
+    </div>
+    
+    <div id="quest-bar"></div>
+    <div id="terminal-container">
+        <div id="terminal"></div>
+    </div>
+
+    <div id="minimap" title="按 M 折叠/展开">
+        <div class="mm-title">小地图<span class="mm-toggle" id="mm-toggle">[−]</span></div>
+        <div class="mm-body" id="mm-body">尚未探索</div>
+    </div>
+    
+    <div id="footer">
+        命令: look · go · take · attack · talk · say · help | WebSocket 桥接 ws://localhost:8080
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    <script>
+        const term = new Terminal({
+            fontFamily: '"Courier New", "Consolas", "Lucida Console", monospace',
+            fontSize: 15,
+            cursorBlink: true,
+            cursorStyle: 'block',
+            theme: {
+                background: '#0a0a0a',
+                foreground: '#33ff33',
+                cursor: '#33ff33',
+                selectionBackground: '#33ff33',
+                selectionForeground: '#0a0a0a',
+                black: '#0a0a0a',
+                red: '#ff5555',
+                green: '#33ff33',
+                yellow: '#ffff55',
+                blue: '#5555ff',
+                magenta: '#ff55ff',
+                cyan: '#55ffff',
+                white: '#cccccc',
+                brightBlack: '#555555',
+                brightRed: '#ff8888',
+                brightGreen: '#88ff88',
+                brightYellow: '#ffff88',
+                brightBlue: '#8888ff',
+                brightMagenta: '#ff88ff',
+                brightCyan: '#88ffff',
+                brightWhite: '#ffffff'
+            },
+            allowProposedApi: true
+        });
+        
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+        term.open(document.getElementById('terminal'));
+        fitAddon.fit();
+        
+        window.addEventListener('resize', () => fitAddon.fit());
+        
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+
+        const elName = document.getElementById('stat-name');
+        const elLevel = document.getElementById('stat-level');
+        const elHp = document.getElementById('stat-hp');
+        const elGold = document.getElementById('stat-gold');
+        const elRoom = document.getElementById('stat-room');
+        const elHpFill = document.getElementById('hp-bar-fill');
+
+        const playerState = { name: '—', level: '—', hp: null, maxHp: null, gold: '—', room: '—' };
+
+        function refreshHpBar() {
+            if (playerState.hp != null && playerState.maxHp != null && playerState.maxHp > 0) {
+                const pct = Math.max(0, Math.min(100, (playerState.hp / playerState.maxHp) * 100));
+                elHpFill.style.width = pct + '%';
+                elHpFill.classList.remove('low', 'critical');
+                if (pct <= 25) elHpFill.classList.add('critical');
+                else if (pct <= 50) elHpFill.classList.add('low');
+                elHp.textContent = `${playerState.hp}/${playerState.maxHp}`;
+            } else {
+                elHpFill.style.width = '100%';
+                elHp.textContent = '—';
+            }
+        }
+
+        function parseStateFromText(text) {
+            // Strip ANSI escapes for matching
+            const clean = text.replace(/\x1b\[[0-9;]*m/g, '');
+
+            // Player name from welcome banner: "欢迎，<name>！" or "欢迎回来，<name>！"
+            const nameMatch = clean.match(/欢迎(?:回来)?[，,]\s*([^\s！!]+)[！!]/);
+            if (nameMatch) {
+                playerState.name = nameMatch[1];
+                elName.textContent = playerState.name;
+            }
+
+            // HP from "HP: X/Y" anywhere
+            const hpMatch = clean.match(/HP[:：]\s*(\d+)\s*\/\s*(\d+)/);
+            if (hpMatch) {
+                playerState.hp = parseInt(hpMatch[1], 10);
+                playerState.maxHp = parseInt(hpMatch[2], 10);
+                refreshHpBar();
+            }
+
+            // Status block: "生命: X/Y"
+            const statusHp = clean.match(/生命[:：]\s*(\d+)\s*\/\s*(\d+)/);
+            if (statusHp) {
+                playerState.hp = parseInt(statusHp[1], 10);
+                playerState.maxHp = parseInt(statusHp[2], 10);
+                refreshHpBar();
+            }
+
+            // Level from "等级: N"
+            const lvMatch = clean.match(/等级[:：]\s*(\d+)/);
+            if (lvMatch) {
+                playerState.level = lvMatch[1];
+                elLevel.textContent = playerState.level;
+            }
+
+            // Gold from "金币: N" or "当前金币: N" or "剩余金币: N"
+            const goldMatch = clean.match(/(?:当前|剩余)?金币[:：]\s*(\d+)/);
+            if (goldMatch) {
+                playerState.gold = goldMatch[1];
+                elGold.textContent = playerState.gold;
+            }
+
+            // Room name from "【房间名】" — pick the last one in the chunk
+            const roomMatches = [...clean.matchAll(/【([^】]+)】/g)];
+            if (roomMatches.length) {
+                const last = roomMatches[roomMatches.length - 1][1];
+                // Filter obvious non-room labels
+                if (!/^(状态|当前任务|可用命令|商品列表|NPC|任务交付|任务|任务更新|系统)/.test(last)) {
+                    playerState.room = last;
+                    elRoom.textContent = last;
+                    elRoom.title = last;
+                }
+            }
+
+            // Death recovery: "（你在村庄广场醒来，生命值恢复到 20）"
+            const reviveMatch = clean.match(/生命值恢复到\s*(\d+)/);
+            if (reviveMatch) {
+                playerState.hp = parseInt(reviveMatch[1], 10);
+                refreshHpBar();
+            }
+
+            // Quest block parsing
+            const questBlock = clean.match(/【(?:当前任务|任务进度)】\n((?:  .*\n?)+)/);
+            if (questBlock) {
+                const lines = questBlock[1].split('\n').filter(l => l.trim());
+                const quests = [];
+                for (const line of lines) {
+                    const m = line.match(/\[\s*([^\]]+)\s*\]\s*([^(]+?)(?:\s*\(([^)]+)\))?/);
+                    if (m) quests.push({ id: m[1].trim(), name: m[2].trim(), progress: (m[3] || '').trim() });
+                }
+                renderQuests(quests);
+            }
+            if (clean.includes('当前没有进行中的任务。')) {
+                renderQuests([]);
+            }
+        }
+
+        function escapeHtml(t) {
+            return t.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function renderQuests(quests) {
+            const bar = document.getElementById('quest-bar');
+            if (!quests.length) {
+                bar.classList.remove('visible');
+                bar.innerHTML = '';
+                return;
+            }
+            bar.innerHTML = quests.map(q =>
+                `<span class="q-item"><span class="q-id">${escapeHtml(q.id)}</span><span class="q-name">${escapeHtml(q.name)}</span>${q.progress ? `<span class="q-progress">(${escapeHtml(q.progress)})</span>` : ''}</span>`
+            ).join('');
+            bar.classList.add('visible');
+        }
+
+        function setOnline(online) {
+            if (online) {
+                statusDot.classList.add('online');
+                statusText.textContent = '在线';
+                statusText.style.color = '#33ff33';
+            } else {
+                statusDot.classList.remove('online');
+                statusText.textContent = '离线';
+                statusText.style.color = '#ff3333';
+            }
+        }
+
+        // ============================================================
+        // Mini-map: track visited rooms, build a layout via cmd_go path
+        // ============================================================
+        const DIR_DELTA = {
+            north: [0, -1], south: [0, 1], east: [1, 0], west: [-1, 0],
+            up: [0, -1], down: [0, 1]   // up/down also map vertically; ok for ASCII
+        };
+        const DIR_GLYPH = { north: '↑', south: '↓', east: '→', west: '←', up: '↑', down: '↓' };
+        const REVERSE = { north: 'south', south: 'north', east: 'west', west: 'east', up: 'down', down: 'up' };
+
+        const mapState = {
+            rooms: {},          // roomName -> {x, y, exits: {dir: roomName}}
+            current: null,
+            pendingDir: null,   // direction last attempted, set when "你向 X 走去..." appears
+            previousRoom: null
+        };
+
+        function recordRoom(name) {
+            if (!mapState.rooms[name]) {
+                let x = 0, y = 0;
+                if (mapState.current && mapState.pendingDir && DIR_DELTA[mapState.pendingDir]) {
+                    const cur = mapState.rooms[mapState.current];
+                    if (cur) {
+                        const [dx, dy] = DIR_DELTA[mapState.pendingDir];
+                        x = cur.x + dx;
+                        y = cur.y + dy;
+                    }
+                }
+                mapState.rooms[name] = { x, y, exits: {} };
+            }
+            // wire reciprocal exits
+            if (mapState.current && mapState.pendingDir && mapState.current !== name) {
+                const fromR = mapState.rooms[mapState.current];
+                if (fromR) {
+                    fromR.exits[mapState.pendingDir] = name;
+                    const rev = REVERSE[mapState.pendingDir];
+                    if (rev) mapState.rooms[name].exits[rev] = mapState.current;
+                }
+            }
+            mapState.previousRoom = mapState.current;
+            mapState.current = name;
+            mapState.pendingDir = null;
+            renderMinimap();
+        }
+
+        function renderMinimap() {
+            const body = document.getElementById('mm-body');
+            const names = Object.keys(mapState.rooms);
+            if (!names.length) { body.textContent = '尚未探索'; return; }
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            for (const n of names) {
+                const r = mapState.rooms[n];
+                if (r.x < minX) minX = r.x;
+                if (r.x > maxX) maxX = r.x;
+                if (r.y < minY) minY = r.y;
+                if (r.y > maxY) maxY = r.y;
+            }
+            const W = (maxX - minX) * 2 + 1;
+            const H = (maxY - minY) * 2 + 1;
+            // grid: each room is one cell '*', edge cells hold connectors
+            const grid = Array.from({ length: H }, () => Array(W).fill(' '));
+            const cellOwner = Array.from({ length: H }, () => Array(W).fill(null));
+            for (const n of names) {
+                const r = mapState.rooms[n];
+                const gx = (r.x - minX) * 2;
+                const gy = (r.y - minY) * 2;
+                grid[gy][gx] = (n === mapState.current) ? '◉' : '○';
+                cellOwner[gy][gx] = n;
+                for (const [dir, otherName] of Object.entries(r.exits)) {
+                    const [dx, dy] = DIR_DELTA[dir] || [0, 0];
+                    const cx = gx + dx;
+                    const cy = gy + dy;
+                    if (cy >= 0 && cy < H && cx >= 0 && cx < W) {
+                        if (dir === 'east' || dir === 'west') grid[cy][cx] = '─';
+                        else grid[cy][cx] = '│';
+                    }
+                }
+            }
+            const lines = grid.map(row => row.join(''));
+            // build interactive HTML where current room is highlighted
+            const html = lines.map(line => {
+                let out = '';
+                for (const ch of line) {
+                    if (ch === '◉') out += `<span class="mm-current">${ch}</span>`;
+                    else if (ch === '○') out += `<span class="mm-visited">${ch}</span>`;
+                    else out += ch === ' ' ? '&nbsp;' : ch;
+                }
+                return out;
+            }).join('\n');
+            body.innerHTML = html + `\n<span style="color:#88ff88">${escapeHtml(mapState.current || '')}</span>`;
+        }
+
+        document.getElementById('mm-toggle').addEventListener('click', () => {
+            document.getElementById('minimap').classList.toggle('collapsed');
+        });
+
+        // hook room parsing into mini-map
+        const _origParse = parseStateFromText;
+        parseStateFromText = function(text) {
+            _origParse(text);
+            const clean = text.replace(/\x1b\[[0-9;]*m/g, '');
+            const goMatch = clean.match(/你向\s+(\w+)\s+走去/);
+            if (goMatch && DIR_DELTA[goMatch[1]]) mapState.pendingDir = goMatch[1];
+            // Pick the LAST room-name token that looks like a real room
+            const roomMatches = [...clean.matchAll(/【([^】]+)】/g)];
+            for (const m of roomMatches) {
+                const nm = m[1];
+                if (/^(状态|当前任务|任务进度|可用命令|商品列表|NPC|任务交付|任务|任务更新|系统|在线玩家|隐藏任务|护送|同行|玩家)/.test(nm)) continue;
+                recordRoom(nm);
+            }
+        };
+
+        // ============================================================
+        // Line editor: history, Tab completion, in-browser line buffer
+        // ============================================================
+        const COMMANDS = [
+            'look', 'go', 'take', 'drop', 'inventory', 'use', 'equip',
+            'attack', 'talk', 'say', 'quest', 'buy', 'sell', 'who',
+            'save', 'load', 'status', 'help', 'quit',
+            // aliases
+            'l', 'i', 'inv', 'get', 'move', 'kill', 'h'
+        ];
+        const DIRECTIONS = ['north', 'south', 'east', 'west', 'up', 'down'];
+        const QUEST_SUBS = ['accept'];
+
+        let lineBuf = '';
+        const history = [];
+        let historyIdx = -1;     // -1 means "current draft", 0..n-1 indexes history (newest=0)
+        let savedDraft = '';
+
+        function rewriteLine(newLine) {
+            // Erase current line: \r + clear-line escape, then echo new
+            term.write('\r\x1b[K> ' + newLine);
+            lineBuf = newLine;
+        }
+
+        function tabComplete() {
+            const parts = lineBuf.split(/\s+/);
+            const last = parts[parts.length - 1];
+            let candidates = [];
+            if (parts.length === 1) {
+                candidates = COMMANDS.filter(c => c.startsWith(last));
+            } else {
+                const cmd = parts[0].toLowerCase();
+                if (cmd === 'go' || cmd === 'move') {
+                    candidates = DIRECTIONS.filter(c => c.startsWith(last));
+                } else if (cmd === 'quest' && parts.length === 2) {
+                    candidates = QUEST_SUBS.filter(c => c.startsWith(last));
+                }
+            }
+            if (candidates.length === 1) {
+                parts[parts.length - 1] = candidates[0];
+                rewriteLine(parts.join(' ') + ' ');
+            } else if (candidates.length > 1) {
+                term.write('\r\n\x1b[36m  ' + candidates.join('  ') + '\x1b[0m\r\n> ' + lineBuf);
+            }
+        }
+
+        function pushHistory(line) {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+            // dedupe consecutive
+            if (history.length && history[0] === trimmed) return;
+            history.unshift(trimmed);
+            if (history.length > 100) history.pop();
+        }
+
+        function handleKey(data) {
+            // Special arrow / control sequences
+            if (data === '\x1b[A') {  // up
+                if (history.length === 0) return;
+                if (historyIdx === -1) savedDraft = lineBuf;
+                historyIdx = Math.min(history.length - 1, historyIdx + 1);
+                rewriteLine(history[historyIdx]);
+                return;
+            }
+            if (data === '\x1b[B') {  // down
+                if (historyIdx <= -1) return;
+                historyIdx -= 1;
+                rewriteLine(historyIdx === -1 ? savedDraft : history[historyIdx]);
+                return;
+            }
+            if (data === '\t') {
+                tabComplete();
+                return;
+            }
+            if (data === '\r' || data === '\n') {
+                term.write('\r\n');
+                if (ws && ws.readyState === WebSocket.OPEN) ws.send(lineBuf + '\n');
+                pushHistory(lineBuf);
+                lineBuf = '';
+                historyIdx = -1;
+                savedDraft = '';
+                return;
+            }
+            if (data === '\x7f' || data === '\b') {  // backspace
+                if (lineBuf.length === 0) return;
+                lineBuf = lineBuf.slice(0, -1);
+                term.write('\b \b');
+                return;
+            }
+            if (data === '\x03') {  // Ctrl+C
+                term.write('^C\r\n> ');
+                lineBuf = '';
+                historyIdx = -1;
+                savedDraft = '';
+                return;
+            }
+            if (data === '\x15') {  // Ctrl+U: clear line
+                rewriteLine('');
+                return;
+            }
+            // Toggle minimap with Alt+M (we get \x1bm)
+            if (data === '\x1bm' || data === '\x1bM') {
+                document.getElementById('minimap').classList.toggle('collapsed');
+                return;
+            }
+            // Printable: append + echo (multi-byte UTF-8 from IME comes as one chunk)
+            // Reject any other escape sequence
+            if (data.startsWith('\x1b')) return;
+            lineBuf += data;
+            term.write(data);
+        }
+
+        const wsUrl = 'ws://localhost:8080';
+        let ws = null;
+        let reconnectTimer = null;
+
+        function connect() {
+            term.writeln('\r\n\x1b[33m[系统] 正在连接服务器...\x1b[0m');
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                setOnline(true);
+                term.writeln('\x1b[32m[系统] 连接成功！↑↓翻历史 · Tab 自动补全 · Alt+M 折叠地图\x1b[0m\r\n');
+            };
+
+            ws.onmessage = (event) => {
+                term.write(event.data);
+                try { parseStateFromText(event.data); } catch (e) { /* ignore */ }
+            };
+
+            ws.onclose = () => {
+                setOnline(false);
+                term.writeln('\r\n\x1b[31m[系统] 连接已断开，5秒后重试...\x1b[0m');
+                reconnectTimer = setTimeout(connect, 5000);
+            };
+
+            ws.onerror = (err) => {
+                term.writeln('\r\n\x1b[31m[系统] 连接错误\x1b[0m');
+            };
+        }
+
+        term.onData(handleKey);
+
+        connect();
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "wild_wolf": [
+    {"item_id": "healing_potion", "chance": 0.40, "count": 1}
+  ],
+  "goblin_scout": [
+    {"item_id": "bread",         "chance": 0.60, "count": 1},
+    {"item_id": "magic_dagger",  "chance": 0.10, "count": 1}
+  ],
+  "poison_snake": [
+    {"item_id": "bread",         "chance": 0.40, "count": 1},
+    {"item_id": "healing_potion","chance": 0.20, "count": 1}
+  ],
+  "skeleton_warrior": [
+    {"item_id": "rusty_sword",   "chance": 0.50, "count": 1},
+    {"item_id": "healing_potion","chance": 0.30, "count": 1}
+  ],
+  "slime": [
+    {"item_id": "bread",         "chance": 0.30, "count": 1}
+  ],
+  "dark_slime": [
+    {"item_id": "leather_armor", "chance": 0.25, "count": 1},
+    {"item_id": "healing_potion","chance": 0.40, "count": 1}
+  ],
+  "skeleton_king": [
+    {"item_id": "crown_of_bones","chance": 1.00, "count": 1},
+    {"item_id": "steel_sword",   "chance": 0.50, "count": 1},
+    {"item_id": "healing_potion","chance": 1.00, "count": 2}
+  ]
+}

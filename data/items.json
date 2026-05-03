@@ -1,0 +1,73 @@
+{
+  "rusty_sword": {
+    "id": "rusty_sword",
+    "name": "生锈的铁剑",
+    "description": "一把略显生锈的铁剑，但刃口还算锋利。铁匠老王的早期作品。",
+    "type": "weapon",
+    "slot": "weapon",
+    "attack_bonus": 5,
+    "usable": false
+  },
+  "healing_potion": {
+    "id": "healing_potion",
+    "name": "红色药水",
+    "description": "一瓶散发着微弱光芒的红色液体，喝下去应该能恢复一些体力。",
+    "type": "consumable",
+    "heal_amount": 30,
+    "usable": true
+  },
+  "bread": {
+    "id": "bread",
+    "name": "黑麦面包",
+    "description": "一个烤得金黄的黑麦面包，散发着诱人的香气。",
+    "type": "consumable",
+    "heal_amount": 10,
+    "usable": true
+  },
+  "magic_dagger": {
+    "id": "magic_dagger",
+    "name": "符文匕首",
+    "description": "一把刻有古代符文的青铜匕首，刃口泛着淡蓝色的微光。比普通的铁剑更加锋利。",
+    "type": "weapon",
+    "slot": "weapon",
+    "attack_bonus": 8,
+    "usable": false
+  },
+  "steel_sword": {
+    "id": "steel_sword",
+    "name": "精钢长剑",
+    "description": "一把由精钢锻造的长剑，剑身上有一道淡淡的水波纹。这是铁匠老王的巅峰之作。",
+    "type": "weapon",
+    "slot": "weapon",
+    "attack_bonus": 12,
+    "usable": false
+  },
+  "crown_of_bones": {
+    "id": "crown_of_bones",
+    "name": "白骨王冠",
+    "description": "由骷髅王的头骨雕刻而成的王冠，散发着不祥的寒气。据说佩戴者能获得死者的力量。",
+    "type": "accessory",
+    "slot": "accessory",
+    "attack_bonus": 3,
+    "defense_bonus": 3,
+    "usable": false
+  },
+  "leather_armor": {
+    "id": "leather_armor",
+    "name": "皮革护甲",
+    "description": "用野狼皮革制成的轻型护甲，轻便灵活，提供基本的防护。",
+    "type": "armor",
+    "slot": "armor",
+    "defense_bonus": 5,
+    "usable": false
+  },
+  "iron_shield": {
+    "id": "iron_shield",
+    "name": "铁制圆盾",
+    "description": "一面厚实的铁制圆盾，虽然笨重了些，但能有效格挡敌人的攻击。",
+    "type": "shield",
+    "slot": "shield",
+    "defense_bonus": 3,
+    "usable": false
+  }
+}

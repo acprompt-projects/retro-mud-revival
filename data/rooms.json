@@ -1,0 +1,121 @@
+{
+  "village_square": {
+    "id": "village_square",
+    "name": "新手村广场",
+    "description": "你站在一个宁静的小村庄中央。鹅卵石铺成的地面略显潮湿，四周是低矮的木屋。北面传来叮叮当当的打铁声，东面飘来食物的香气，南面通向村外的森林。",
+    "exits": {
+      "north": "blacksmith",
+      "east": "tavern",
+      "south": "forest_edge"
+    },
+    "items": ["healing_potion"],
+    "npcs": ["village_patrol"]
+  },
+  "blacksmith": {
+    "id": "blacksmith",
+    "name": "铁匠铺",
+    "description": "一间闷热而充满金属气息的铁匠铺。墙上挂满了各式武器和农具，熔炉里的炭火发出暗红色的光芒。铁匠老王正在捶打一块烧红的铁块。",
+    "exits": {
+      "south": "village_square"
+    },
+    "items": ["rusty_sword"],
+    "npcs": ["blacksmith_wang"]
+  },
+  "tavern": {
+    "id": "tavern",
+    "name": "醉月酒馆",
+    "description": "这是村里唯一的酒馆，木梁上挂着几盏摇摇晃晃的油灯。角落里几个村民正在低声交谈，空气中弥漫着麦酒和烤面包的香味。酒馆老板站在吧台后面擦拭着酒杯。",
+    "exits": {
+      "west": "village_square"
+    },
+    "items": ["bread"],
+    "npcs": ["tavern_boss"]
+  },
+  "forest_edge": {
+    "id": "forest_edge",
+    "name": "森林边缘",
+    "description": "村庄南边的森林入口处，高大的橡树遮天蔽日，阳光只能透过树叶的缝隙洒下斑驳的光影。地上长满了苔藓和野蘑菇。远处传来不知名野兽的低吼声，西边的山壁上似乎有一个黑黢黢的洞口。",
+    "exits": {
+      "north": "village_square",
+      "east": "deep_path",
+      "south": "lakeside_camp",
+      "west": "cave_entrance"
+    },
+    "items": [],
+    "npcs": ["wild_wolf"]
+  },
+  "deep_path": {
+    "id": "deep_path",
+    "name": "幽深小径",
+    "description": "一条被杂草覆盖的蜿蜒小径，两侧的树木越来越密集，光线也越来越暗。地上可以看到一些奇怪的脚印，似乎不属于任何常见的动物。空气中弥漫着腐朽的气息。",
+    "exits": {
+      "west": "forest_edge",
+      "east": "ruins_entrance"
+    },
+    "items": ["healing_potion", "bread"],
+    "npcs": ["poison_snake"]
+  },
+  "ruins_entrance": {
+    "id": "ruins_entrance",
+    "name": "古遗迹入口",
+    "description": "一片被藤蔓覆盖的古老石质建筑遗迹，巨大的石柱倾倒在地上，上面刻满了已经风化的符文。入口处的地面散落着一些骸骨，看起来这里曾经是某个古代文明的祭坛。",
+    "exits": {
+      "west": "deep_path",
+      "down": "dungeon_1"
+    },
+    "items": ["magic_dagger"],
+    "npcs": ["skeleton_warrior"]
+  },
+  "lakeside_camp": {
+    "id": "lakeside_camp",
+    "name": "湖边营地",
+    "description": "森林深处的一片清澈湖泊，湖边搭着几个破旧的帐篷，中央燃烧着一堆篝火。一个行商正在整理他的货物，看起来你可以和他交易。",
+    "exits": {
+      "north": "forest_edge"
+    },
+    "items": ["healing_potion"],
+    "npcs": ["traveling_merchant"]
+  },
+  "cave_entrance": {
+    "id": "cave_entrance",
+    "name": "黑暗洞穴入口",
+    "description": "一个阴森森的洞穴入口，从里面吹出冰冷潮湿的风。洞口散落着一些动物的骸骨，墙壁上似乎有奇怪的爪痕。这里给人一种不祥的预感。",
+    "exits": {
+      "north": "forest_edge"
+    },
+    "items": ["healing_potion"],
+    "npcs": ["goblin_scout"]
+  },
+  "dungeon_1": {
+    "id": "dungeon_1",
+    "name": "地牢一层",
+    "description": "遗迹下方的地牢，墙壁上长满了青苔和霉菌。昏暗的火把照亮了狭窄的走廊，地上散落着生锈的铁链和破碎的陶罐。深处传来滴水的声音。",
+    "exits": {
+      "up": "ruins_entrance",
+      "down": "dungeon_2"
+    },
+    "items": ["bread", "healing_potion"],
+    "npcs": ["slime"]
+  },
+  "dungeon_2": {
+    "id": "dungeon_2",
+    "name": "地牢二层",
+    "description": "比上一层更加阴冷潮湿，空气中弥漫着硫磺的味道。墙壁上出现了一些奇怪的壁画，描绘着某种古老的祭祀仪式。走廊尽头有一扇厚重的铁门。",
+    "exits": {
+      "up": "dungeon_1",
+      "down": "dungeon_3"
+    },
+    "items": ["healing_potion", "steel_sword"],
+    "npcs": ["dark_slime", "skeleton_warrior"]
+  },
+  "dungeon_3": {
+    "id": "dungeon_3",
+    "name": "地牢三层 — 王座厅",
+    "description": "一个巨大的地下殿堂，中央是一座由黑曜石雕刻而成的王座。王座上的骷髅王空洞的眼眶中燃烧着幽蓝色的火焰，手中握着一把巨大的骨剑。这是地下世界的尽头，也是最强敌人的巢穴。",
+    "exits": {
+      "up": "dungeon_2"
+    },
+    "items": ["crown_of_bones", "healing_potion"],
+    "npcs": ["skeleton_king"]
+  }
+}

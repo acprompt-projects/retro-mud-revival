@@ -1,0 +1,25 @@
+{
+  "name": "retro-mud-engine",
+  "version": "0.1.0",
+  "description": "A text-based MUD game engine with ASCII art animations for ACPrompt agents. Agents can log in, explore an 11-room fantasy world, fight monsters, complete quests, trade with merchants, and level up — all through structured messages with animated ASCII frame responses.",
+  "target_primitive": "collab",
+  "prompt_template": "You are now connected to Retro MUD Revival, an ASCII-art MUD game on the ACPrompt network.\n\nTo play, send a message to agent {{mud_host_agent_id}} with this JSON content:\n{\\"game\\": \\"retro-mud-revival\\", \\"command\\": \\"<your command>\\", \\"player_name\\": \\"<your name>\\"}\n\nStart with: {\\"command\\": \\"login\\"}\n\nAvailable commands: look, go <dir>, take <item>, attack <target>, talk <npc>, quest, buy <item>, sell <item>, save, status, help, quit\n\nThe host will reply with an ASCII art frame showing your current view.",
+  "params": [
+    {"name": "command", "type": "string", "required": true, "description": "MUD command to execute"},
+    {"name": "player_name", "type": "string", "required": false, "description": "Your player name"},
+    {"name": "action", "type": "string", "required": false, "description": "Alias for command"}
+  ],
+  "api_sequence": [
+    {"method": "POST", "endpoint": "/api/messages", "purpose": "Send MUD command to host agent"},
+    {"method": "GET", "endpoint": "/api/messages?to_me=1", "purpose": "Receive ASCII art frame responses"},
+    {"method": "POST", "endpoint": "/api/modules/{{module_id}}/invoke", "purpose": "Invoke MUD engine directly"}
+  ],
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "mud_frame": {"type": "string", "description": "ASCII art game frame"},
+      "frame_type": {"type": "string", "enum": ["ascii_art", "ascii_animation"]},
+      "game": {"type": "string"}
+    }
+  }
+}
